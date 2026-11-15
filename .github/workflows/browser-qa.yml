@@ -1,5 +1,12 @@
 name: RutaTicket — browser QA de la demo
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'src/**'
+      - 'tests/browser-demo.py'
+      - '.github/workflows/browser-qa.yml'
   pull_request:
     branches: [main]
     paths:
