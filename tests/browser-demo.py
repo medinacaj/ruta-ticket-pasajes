@@ -21,7 +21,15 @@ with sync_playwright() as p:
     for width in (320, 390, 768, 1280):
         page.set_viewport_size({"width": width, "height": 844})
         overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
-        assert overflow <= 2, ("horizontal overflow", width, overflow)
+        if overflow > 2:
+            offenders = page.evaluate("""() => [...document.querySelectorAll('body *')]
+              .map(el => ({tag: el.tagName.toLowerCase(), id: el.id || '',
+                className: typeof el.className === 'string' ? el.className : '',
+                right: Math.round(el.getBoundingClientRect().right),
+                width: Math.round(el.getBoundingClientRect().width)}))
+              .filter(el => el.right > innerWidth + 2 && el.width > 5)
+              .sort((a,b) => b.right - a.right).slice(0,15)""")
+            raise AssertionError(("horizontal overflow", width, overflow, offenders))
     page.set_viewport_size({"width": 390, "height": 844})
 
     page.locator("#tenant").select_option("operador-costa")
