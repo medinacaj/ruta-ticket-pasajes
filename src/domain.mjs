@@ -2,6 +2,14 @@
 const now = () => new Date().toISOString();
 const uid = () => crypto.randomUUID();
 const fail = (message) => { throw new Error(message); };
+// Do not coerce empty/boolean values to zero or one in financial operations.
+// FormData returns strings; tests/domain consumers may pass actual numbers.
+const wholeNumber = (raw, min, max, message) => {
+  if (typeof raw !== "number" && (typeof raw !== "string" || !/^\d+$/.test(raw.trim()))) fail(message);
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < min || value > max) fail(message);
+  return value;
+};
 const textVal = (value, max = 70) => {
   const valueText = String(value ?? "").trim();
   if (valueText.length < 2 || valueText.length > max) fail("Texto requerido de 2 a " + max + " caracteres");
@@ -49,9 +57,9 @@ export function occupiedSeats(state, tenantId, tripId) {
 }
 export function createTrip(state, tenantId, input) {
   tenant(state, tenantId);
-  const seats = Number(input.seats), fare = Number(input.fare), departure = String(input.departure || "");
-  if (!Number.isSafeInteger(seats) || seats < 1 || seats > 80) fail("Capacidad inválida (1 a 80)");
-  if (!Number.isSafeInteger(fare) || fare < 0 || fare > 100000000) fail("Tarifa de demostración inválida");
+  const seats = wholeNumber(input.seats, 1, 80, "Capacidad inválida (1 a 80)");
+  const fare = wholeNumber(input.fare, 0, 100000000, "Tarifa de demostración inválida");
+  const departure = String(input.departure || "");
   if (!departureIsValid(departure)) fail("Fecha y hora inválidas");
   const mode = String(input.mode || "");
   if (!["Terrestre", "Marítimo"].includes(mode)) fail("Modalidad inválida");
@@ -67,8 +75,7 @@ export function createTrip(state, tenantId, input) {
 export function sellSeat(state, tenantId, tripId, seatInput, alias) {
   const trip = tripFor(state, tenantId, tripId);
   if (cashFor(state, tenantId).status !== "open") fail("Caja cerrada: no pueden registrarse más ventas de prueba");
-  const seat = Number(seatInput);
-  if (!Number.isSafeInteger(seat) || seat < 1 || seat > trip.seats) fail("Asiento inexistente");
+  const seat = wholeNumber(seatInput, 1, trip.seats, "Asiento inexistente");
   if (occupiedSeats(state, tenantId, tripId).includes(seat)) fail("Asiento ocupado");
   const ticket = {
     id: uid(), code: "RT-" + uid().replaceAll("-", "").slice(0, 16).toUpperCase(),
@@ -115,8 +122,7 @@ export function summary(state, tenantId) {
 export function closeCash(state, tenantId, declaredInput) {
   const cash = cashFor(state, tenantId);
   if (cash.status !== "open") fail("La caja ya está cerrada");
-  const declared = Number(declaredInput);
-  if (!Number.isSafeInteger(declared) || declared < 0 || declared > 1000000000) fail("Importe declarado inválido");
+  const declared = wholeNumber(declaredInput, 0, 1000000000, "Importe declarado inválido");
   const expected = summary(state, tenantId).amountSimulated;
   cash.status = "closed";
   cash.closedAt = now();
