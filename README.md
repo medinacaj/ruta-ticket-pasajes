@@ -32,7 +32,7 @@ npm test
 npm run check
 ```
 
-La validación en navegador real está pendiente en esta entrega.
+La validación automatizada de navegador Chromium ahora está integrada en `tests/browser-demo.py`: cubre ancho de 320–1280 px, asiento por teclado, aislamiento visual entre operadores ficticios, reinicio de datos y ausencia de conexiones a terceros. **Siguen pendientes** pruebas físicas con lectores de pantalla, múltiples dispositivos y una autorización formal antes de cualquier venta real.
 
 ## Próximos hitos
 Leer [arquitectura y etapas](docs/ARQUITECTURA_Y_HITOS.md) para el desarrollo de backend PostgreSQL, separación por taquilla/operador, ventas concurrentes, QR, pagos autorizados, cierres verificados, SaaS multicliente y normas para transporte. No se autoriza despliegue, fondos ni datos personales reales.
