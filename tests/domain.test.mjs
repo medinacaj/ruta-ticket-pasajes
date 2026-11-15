@@ -66,3 +66,29 @@ test("salidas DEMO rechazan fechas imposibles y horarios fuera de rango", () => 
   assert.equal(valid.departure,"2028-02-29T23:59");
   assert.equal(s.trips.filter(x=>x.tenantId==="operador-costa").length,3);
 });
+
+test("campos numéricos vacíos o manipulados no producen tarifas, asientos ni cierres de caja", () => {
+  const state = seedDemo();
+  const baseline = { origin: "Cumaná", destination: "Barcelona", departure: "2027-09-10T11:30", mode: "Terrestre", seats: "10", fare: "0" };
+  const beforeTrips = state.trips.length;
+  for (const raw of ["", "  ", null, undefined, true, "0x10", "1e2", "-0", "1.2"]) {
+    assert.throws(() => createTrip(state, "operador-costa", { ...baseline, fare: raw }), /Tarifa de demostración inválida/, String(raw));
+    assert.throws(() => createTrip(state, "operador-costa", { ...baseline, seats: raw }), /Capacidad inválida/, String(raw));
+  }
+  assert.equal(state.trips.length, beforeTrips, "ninguna entrada inválida modifica las salidas");
+
+  const trip = createTrip(state, "operador-costa", baseline);
+  assert.equal(trip.fare, 0, "cero debe aceptarse solamente cuando es explícito");
+  const ticketsBefore = state.tickets.length;
+  for (const raw of ["", " ", null, undefined, true, "1e0", "0x1"]) {
+    assert.throws(() => sellSeat(state, "operador-costa", trip.id, raw, "Pasajero Demo"), /Asiento inexistente/, String(raw));
+  }
+  assert.equal(state.tickets.length, ticketsBefore);
+  const auditBefore = state.audit.length;
+  for (const raw of ["", "   ", null, undefined, false, "0x10", "1e3"]) {
+    assert.throws(() => closeCash(state, "operador-costa", raw), /Importe declarado inválido/, String(raw));
+    assert.equal(summary(state, "operador-costa").cash.status, "open", "caja debe permanecer abierta");
+  }
+  assert.equal(state.audit.length, auditBefore, "no registrar cierres fallidos");
+  assert.equal(closeCash(state, "operador-costa", "0").declaredAmount, 0);
+});
