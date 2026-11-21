@@ -36,3 +36,17 @@ La validación automatizada de navegador Chromium ahora está integrada en `test
 
 ## Próximos hitos
 Leer [arquitectura y etapas](docs/ARQUITECTURA_Y_HITOS.md) para el desarrollo de backend PostgreSQL, separación por taquilla/operador, ventas concurrentes, QR, pagos autorizados, cierres verificados, SaaS multicliente y normas para transporte. No se autoriza despliegue, fondos ni datos personales reales.
+
+## Continuidad y estado verificable · 21/11/2026
+
+**Propósito:** MVP de boletería digital para transporte.
+
+**Límite:** No es un sistema transaccional real; independiente de PaseListo.
+
+- **Código:** revisar commits y PR recientes del propio repositorio, sin trasladar supuestos de otro producto.
+- **Pruebas/CI:** verificar los workflows y resultados asociados al SHA exacto. Esta actualización del README no constituye prueba funcional.
+- **Despliegue:** confirmar por separado la versión servida y el funcionamiento real del entorno; demo o CI verde no acreditan producción.
+- **Operación:** continuar el último bloqueo real, documentando rama, SHA, PR, evidencia de pruebas, entorno verificado y siguiente acción.
+- **Protección:** preservar fixtures sintéticos, separar entornos y no divulgar credenciales ni datos reales.
+
+**Fuente oficial:** documentación y decisiones de este producto. Leer [memoria operativa](docs/MEMORIA_OPERATIVA.md) y [decisiones](docs/DECISIONES.md). [Issue relevante](https://github.com/medinacaj/saas-ruta-ticket/issues/1).
